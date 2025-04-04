@@ -118,7 +118,7 @@ error_metrics <- calcPredictionAccuracy(
 )
 print(error_metrics)
 
-
+#Fonction pour recupere des recommendations
 get_recommendations <- function(user_id, n = 10) {
   user_ratings <- filtered_ratings[user_id, ]
   pred <- predict(ibcf_model, user_ratings, n = n)
@@ -131,8 +131,43 @@ get_recommendations <- function(user_id, n = 10) {
     mutate(predicted_rating = pred@ratings[[1]])
 }
 
-# Example: Get recommendations for user 1
+#Recommendation pour utilisateur 1
 user1_recs <- get_recommendations(1)
 print(user1_recs)
-# Save model for deployment
+
+
+
+# Tune parameters using cross-validation
+parameters <- list(
+  k = c(20, 30, 40),
+  method = c("cosine", "pearson")
+)
+
+# Evaluate different parameter combinations
+results <- evaluate(
+  eval_scheme,
+  method = "IBCF",
+  type = "ratings",
+  parameter = parameters
+)
+
+# Affichage
+plot(results, annotate = TRUE)
+
+
+best_model <- results %>%
+  getConfusionMatrix() %>%
+  as.data.frame() %>%
+  arrange(desc(TPR)) %>%
+  head(1)
+
+
+# Train final model with best parameters
+final_model <- Recommender(
+  filtered_ratings,
+  method = "IBCF",
+  parameter = list(k = best_model$k, method = best_model$method)
+)
+
+# Sauvegarde du model pour des utilisations futur
 saveRDS(final_model, "movie_recommender.rds")

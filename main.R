@@ -44,9 +44,7 @@ rating_matrix <- dcast(ratings, userId ~ movieId, value.var = "rating", fill = N
 rating_matrix <- as.matrix(rating_matrix[, -1]) %>% 
   as("realRatingMatrix")
 
-# 4. Data Exploration and Visualization -----------------------------------
-
-# Movie popularity analysis
+#Popularite
 movie_views <- colCounts(rating_matrix)
 top_movies <- data.frame(
   movieId = names(movie_views),
@@ -127,7 +125,7 @@ get_recommendations <- function(user_id, n = 10) {
   
   movies %>%
     filter(movieId %in% movie_ids) %>%
-    select(title, genres) %>%
+    select(title, all_of(genres)) %>%
     mutate(predicted_rating = pred@ratings[[1]])
 }
 
